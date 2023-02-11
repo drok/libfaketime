@@ -1018,10 +1018,11 @@ static inline void fake_stat64buf (struct stat64 *buf) {
 #ifdef MACOS_DYLD_INTERPOSE
 int macos_stat (const char *path, struct stat *buf)
 #else
-int stat (const char *path, struct stat *buf)
+int fake_stat (const char *path, struct stat *buf)
 #endif
 {
-  STAT_HANDLER(stat, buf, path, buf);
+	return stat(path, buf);
+//  STAT_HANDLER(stat, buf, path, buf);
 }
 
 #ifdef MACOS_DYLD_INTERPOSE
@@ -2502,10 +2503,11 @@ static void parse_ft_string(const char *user_faked_time)
       }
       else
       {
-        DONT_FAKE_TIME(ret = stat(getenv("FAKETIME_FOLLOW_FILE"), &master_file_stats));
+        DONT_FAKE_TIME(ret = fake_stat(getenv("FAKETIME_FOLLOW_FILE"), &master_file_stats));
         if (ret == -1)
         {
-          fprintf(stderr, "libfaketime: Cannot get timestamp of file %s as requested by %% operator.\n", getenv("FAKETIME_FOLLOW_FILE"));
+          fprintf(stderr, "libfaketime: Cannot get timestamp of file %s as requested by %% operator: %s\n",
+						getenv("FAKETIME_FOLLOW_FILE"), strerror(errno));
           exit(1);
         }
         else
